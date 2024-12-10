@@ -1,6 +1,7 @@
-import tempfile
+import os
 from flask import Flask, request, render_template, send_file
 from PyPDF2 import PdfReader, PdfWriter
+import tempfile
 
 app = Flask(__name__)
 
@@ -16,9 +17,14 @@ def index():
             if not main_pdf or not insert_pdf:
                 return "Pastikan kedua file PDF diunggah.", 400
 
+            # Dapatkan nama file utama tanpa ekstensi
+            main_pdf_name = os.path.splitext(main_pdf.filename)[0]
+            combined_pdf_name = f"{main_pdf_name}_combined.pdf"
+
+            # Simpan file sementara
             main_pdf_path = f"{temp_dir}/main.pdf"
             insert_pdf_path = f"{temp_dir}/insert.pdf"
-            output_pdf_path = f"{temp_dir}/Cepat Rename File Ini!.pdf"
+            output_pdf_path = f"{temp_dir}/{combined_pdf_name}"
 
             main_pdf.save(main_pdf_path)
             insert_pdf.save(insert_pdf_path)
@@ -45,7 +51,7 @@ def index():
                     writer.write(output_file)
 
                 # Kirim file hasil untuk diunduh
-                return send_file(output_pdf_path, as_attachment=True)
+                return send_file(output_pdf_path, as_attachment=True, download_name=combined_pdf_name)
 
             except Exception as e:
                 return f"Terjadi kesalahan: {e}", 500
